@@ -120,6 +120,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+Machine Learning Model/src/deneme.py
 .env
 .venv
 env/
