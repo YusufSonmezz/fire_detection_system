@@ -26,7 +26,7 @@ class DataIngestion:
         logging.info("Data Ingestion has been started.")
 
         try:
-            df = pd.read_csv("notebook/data/forestfires.csv")
+            df = pd.read_csv("notebook/data/forestfire_raw.csv")
             logging.info("Read the dataset as DataFrame.")
 
             os.makedirs(os.path.dirname(self.ingestion_config.train_data_path), exist_ok=True)
@@ -38,7 +38,7 @@ class DataIngestion:
 
             df.to_csv(self.ingestion_config.raw_data_path, index = False, header=True)
 
-            train_set, test_set = train_test_split(df, test_size=0.2, random_state=42)
+            train_set, test_set = train_test_split(df, test_size=0.2, random_state=42, shuffle=True)
 
             train_set.to_csv(self.ingestion_config.train_data_path, index = False, header = True)
             test_set.to_csv(self.ingestion_config.test_data_path, index = False, header = True)

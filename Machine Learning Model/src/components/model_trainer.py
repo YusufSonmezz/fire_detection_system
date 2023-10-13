@@ -10,8 +10,8 @@ from sklearn.ensemble import (
     RandomForestRegressor,
     RandomForestClassifier
 )
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import r2_score, accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, log_loss
+from sklearn.linear_model import LinearRegression, LogisticRegressionCV
+from sklearn.metrics import r2_score, accuracy_score, confusion_matrix, classification_report
 from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 from xgboost import XGBRegressor
 
@@ -45,14 +45,15 @@ class ModelTrainer:
 
             models = {
                 "Random Forest": RandomForestRegressor(),
-                #"Random Forest Classifier": RandomForestClassifier(),
+                "Random Forest Classifier": RandomForestClassifier(),
                 "Decision Tree": DecisionTreeRegressor(),
-                #"Decision Tree Classifier": DecisionTreeClassifier(),
+                "Decision Tree Classifier": DecisionTreeClassifier(),
                 "Gradient Boosting": GradientBoostingRegressor(),
                 "XGBRegressor": XGBRegressor(),
                 "Linear Regression": LinearRegression(),
                 "CatBoosting Regressor": CatBoostRegressor(verbose = False),
-                "AdaBoost Regressor": AdaBoostRegressor()
+                "AdaBoost Regressor": AdaBoostRegressor(),
+                "Logistic Regression": LogisticRegressionCV()
             }
 
             params = {
@@ -61,6 +62,7 @@ class ModelTrainer:
                     # 'splitter':['best','random'],
                     # 'max_features':['sqrt','log2'],
                 },
+                "Logistic Regression":{},
                 "Decision Tree Classifier":{
                     'criterion': ['gini', 'entropy', 'log_loss'],
                     'splitter': ['best', 'random'],
@@ -127,11 +129,19 @@ class ModelTrainer:
                 obj = best_model
             )
 
-            predicted = best_model.predict(x_test)
+            y_pred = best_model.predict(x_test)
 
-            r2_square = r2_score(y_test, predicted)
+            accuracy = accuracy_score(y_test, [int(y > 0.5) for y in y_pred])
+            confusion = confusion_matrix(y_test, [int(y > 0.5) for y in y_pred])
+            classification_report_str = classification_report(y_test, [int(y > 0.5) for y in y_pred])
 
-            return r2_square
+            print(f"Accuracy: {accuracy}")
+            print("Confusion Matrix:")
+            print(confusion)
+            print("Classification Report:")
+            print(classification_report_str)
+
+            return accuracy
 
         except Exception as e:
             raise CustomException(e, sys)

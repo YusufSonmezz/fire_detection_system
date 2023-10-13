@@ -89,6 +89,10 @@ class DataTransformation:
             input_feature_test_df = test_df.drop(columns=[self.target_column], axis = 1)
             target_feature_test_df = test_df[self.target_column]
 
+            # Target feature may have NaN values. Here it is fixed.
+            target_feature_train_df.fillna(0, inplace=True)
+            target_feature_test_df.fillna(0, inplace=True)
+
             logging.info("Applying preprocess object on training dataframe and testing dataframe")
 
             input_feature_train_arr = preprocessing_obj.fit_transform(input_feature_train_df)
