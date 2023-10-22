@@ -4,6 +4,7 @@ import numpy as np
 from dataclasses import dataclass
 
 from catboost import CatBoostRegressor
+from sklearn.svm import SVR
 from sklearn.ensemble import (
     AdaBoostRegressor,
     GradientBoostingRegressor,
@@ -53,7 +54,8 @@ class ModelTrainer:
                 "Linear Regression": LinearRegression(),
                 "CatBoosting Regressor": CatBoostRegressor(verbose = False),
                 "AdaBoost Regressor": AdaBoostRegressor(),
-                "Logistic Regression": LogisticRegressionCV()
+                "Logistic Regression": LogisticRegressionCV(),
+                "Support Vector Machine": SVR(),
             }
 
             params = {
@@ -63,6 +65,7 @@ class ModelTrainer:
                     # 'max_features':['sqrt','log2'],
                 },
                 "Logistic Regression":{},
+                "Support Vector Machine": {},
                 "Decision Tree Classifier":{
                     'criterion': ['gini', 'entropy', 'log_loss'],
                     'splitter': ['best', 'random'],
