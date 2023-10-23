@@ -9,6 +9,8 @@ __pycache__/
 # Deep Learning folder
 Deep Learning/data/raw_img
 Deep Learning/data/videos
+Deep Learning/data/fire_smoke
+Deep Learning/data/no_fire_smoke
 Deep Learning/*.egg-info
 Deep Learning/logs
 Deep Learning/models

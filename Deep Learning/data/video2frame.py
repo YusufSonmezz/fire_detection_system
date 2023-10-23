@@ -15,7 +15,7 @@ class Video2Frame:
     
     def seperate_frames_from_videos(self):
         '''
-        This functions read vidoes frame by frame. Save specific frames to image folder.
+        Read vidoes frame by frame. Save specific frames to image folder.
         '''
         video_path_names = os.listdir(self.video_config.video_folder_path)
 

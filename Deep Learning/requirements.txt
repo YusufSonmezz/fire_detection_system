@@ -1,9 +1,9 @@
-numpy
-pandas
-matplotlib
-torch
-torchvision
-torchaudio
-opencv-python
-tqdm
+matplotlib==3.8.0
+numpy==1.26.1
+opencv-python==4.8.1.78
+pandas==2.1.1
+torch==2.1.0+cu118
+torchaudio==2.1.0
+torchvision==0.16.0+cu118
+tqdm==4.66.1
 -e .
