@@ -6,6 +6,13 @@ __pycache__/
 # C extensions
 *.so
 
+# Deep Learning folder
+Deep Learning/data/raw_img
+Deep Learning/data/videos
+Deep Learning/*.egg-info
+Deep Learning/logs
+Deep Learning/models
+
 # Distribution / packaging
 .Python
 build/
