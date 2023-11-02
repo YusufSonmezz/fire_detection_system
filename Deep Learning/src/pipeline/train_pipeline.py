@@ -7,6 +7,7 @@ import glob
 import random
 import numpy as np
 import tqdm
+from sklearn.metrics import r2_score, accuracy_score, confusion_matrix, classification_report
 
 from src.components.model import VGGModel
 from config import constant
@@ -19,8 +20,8 @@ class TrainPipeline:
         self.model = VGGModel(self.classes)
         self.preprocessPipeline = PreprocessPipeline()
 
-        self.criterion = nn.BCELoss()
-        self.optimizer = optim.Adam(self.model.parameters(), lr = constant.LEARNING_RATE, weight_decay=1e-6)
+        self.criterion = nn.CrossEntropyLoss()
+        self.optimizer = optim.Adam(self.model.parameters(), lr = constant.LEARNING_RATE, weight_decay=0.001)
         self.scheduler = lr_scheduler.ExponentialLR(self.optimizer, gamma=0.9)
 
         self.writer = SummaryWriter()
@@ -30,11 +31,18 @@ class TrainPipeline:
             self.criterion = self.criterion.cuda()
         
         self.train_list, self.valid_list, self.test_list, self.label_dict = train_test_split()
+
+        ########
+        self.prediction = []
+        self.label = []
+        ########
     
     def initiate_train(self):
 
         for epoch in range(constant.EPOCH):
             train_loss, train_accuracy = self.train_one_epoch(epoch)
+            self.label = []
+            self.prediction = []
             val_loss, val_accuracy = self.validate(epoch)
         
         self.writer.flush()
@@ -55,6 +63,10 @@ class TrainPipeline:
             batch_label = self.preprocessPipeline.one_hot_encoder(batch_label_list)
 
             outputs = self.model(batch_input)
+            '''
+
+            # Apply last layer outside of model
+            outputs = nn.Sigmoid()(outputs)'''
 
             loss = self.criterion(outputs, batch_label)
             
@@ -72,11 +84,11 @@ class TrainPipeline:
             total_samples += batch_label.size(0)
 
             
-            self.writer.add_figure(
+            '''self.writer.add_figure(
                 'predictions vs. actuals',
                 plot_classes_preds(self.writer, self.model, batch_input, batch_label_predict),
                 global_step=epoch
-            )
+            )'''
         
         epoch_loss = running_loss / len(self.train_list)
         accuracy = correct_predictions / total_samples
@@ -103,11 +115,22 @@ class TrainPipeline:
                 val_loss += loss.float()
 
                 _, predicted = torch.max(output, 1)
+                self.prediction.extend(predicted.cpu().numpy())
                 _, predicted_label = torch.max(batch_label, 1)
+                self.label.extend(predicted_label.cpu().numpy())
                 correct_predictions += (predicted == predicted_label).sum().float()
                 
                 self.writer.add_scalar("Loss/Validate", val_loss, i)
                 
+        accuracy = accuracy_score(self.label, self.prediction)
+        confusion = confusion_matrix(self.label, self.prediction)
+        classification_report_str = classification_report(self.label, self.prediction)
+
+        print(f"Accuracy: {accuracy}")
+        print("Confusion Matrix:")
+        print(confusion)
+        print("Classification Report:")
+        print(classification_report_str)
         
         average_loss = val_loss / len(self.valid_list)
         accuracy = correct_predictions / len(self.valid_list)
