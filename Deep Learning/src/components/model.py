@@ -54,8 +54,6 @@ class VGGModel(nn.Module):
         self.fullyConnected2 = fullyConnected(4096, 4096)
         self.fullyConnected3 = fullyConnected(4096, 1000)
 
-        self.dropout = nn.Dropout(0.5)
-
         self.out = nn.Linear(1000, classes)
     
     def forward(self, x):
@@ -65,8 +63,6 @@ class VGGModel(nn.Module):
         x = self.maxPooling(self.singleConv3(self.dblConv3(x)))
         x = self.maxPooling(self.singleConv4(self.dblConv4(x)))
         x = self.maxPooling(self.singleConv5(self.dblConv5(x)))
-
-        x = self.dropout(x)
 
         x = self.flatten(x)
 
