@@ -17,8 +17,8 @@ NO_FIRE_RAW_DATASET_AUG = os.path.join("data/non_fire_augmented", "*")
 shuffle = True
 
 # Train config
-EPOCH = 3
-LEARNING_RATE = 0.00001
+EPOCH = 5
+LEARNING_RATE = 0.0001
 
 valid_size = 0.15
 test_size = 0.15

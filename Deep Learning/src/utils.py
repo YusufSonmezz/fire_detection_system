@@ -10,8 +10,8 @@ import cv2
 
 def train_test_split():
     # data_ingestion ile farklı kaynaklardan gelen datanın tek bir formatta kullanılması
-    fire_dataset = glob.glob(constant.FIRE_RAW_DATASET)
-    non_fire_dataset = glob.glob(constant.NO_FIRE_RAW_DATASET)
+    fire_dataset = glob.glob(constant.FIRE_RAW_DATASET)[:1500]
+    non_fire_dataset = glob.glob(constant.NO_FIRE_RAW_DATASET)[:1500]
     aug_non_fire_dataset = glob.glob(constant.NO_FIRE_RAW_DATASET_AUG)
 
     non_fire_dataset += aug_non_fire_dataset
