@@ -76,8 +76,8 @@ class PreprocessPipeline:
         
         ohe_list = []
 
-        fire     = [1, 0]
-        non_fire = [0, 1]
+        fire     = [0, 1]
+        non_fire = [1, 0]
 
         for label in label_list:
             if label == 1: ohe_list.append(fire)
