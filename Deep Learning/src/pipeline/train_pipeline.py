@@ -3,9 +3,6 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
 from torch.utils.tensorboard import SummaryWriter
-import glob
-import random
-import numpy as np
 import tqdm
 from sklearn.metrics import r2_score, accuracy_score, confusion_matrix, classification_report
 
@@ -41,9 +38,11 @@ class TrainPipeline:
 
         for epoch in range(constant.EPOCH):
             train_loss, train_accuracy = self.train_one_epoch(epoch)
+            val_loss, val_accuracy = self.validate(epoch)
+            ####
             self.label = []
             self.prediction = []
-            val_loss, val_accuracy = self.validate(epoch)
+            ####
         
         self.writer.flush()
     
@@ -57,7 +56,7 @@ class TrainPipeline:
 
         for ind in tqdm.tqdm(range(steps_per_epoch)):
             batch_input_list = self.train_list[constant.BATCH_SIZE*ind:constant.BATCH_SIZE*(ind+1)]
-            batch_label_list = [label for path, label in self.label_dict.items() if path in batch_input_list]
+            batch_label_list = [self.label_dict[input_path] for input_path in batch_input_list]
 
             batch_input = self.preprocessPipeline.initate_preprocess(batch_input_list)
             batch_label = self.preprocessPipeline.one_hot_encoder(batch_label_list)
