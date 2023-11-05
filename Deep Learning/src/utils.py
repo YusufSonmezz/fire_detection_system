@@ -6,6 +6,9 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import cv2
+import os
+from datetime import datetime
+import json
 
 from src.logger import setup_logging, logging
 
@@ -13,9 +16,9 @@ from src.logger import setup_logging, logging
 def train_test_split():
     setup_logging(logging.INFO)
     # data_ingestion ile farklı kaynaklardan gelen datanın tek bir formatta kullanılması
-    fire_dataset = glob.glob(constant.FIRE_RAW_DATASET)[:200]
-    non_fire_dataset = glob.glob(constant.NO_FIRE_RAW_DATASET)[:100]
-    aug_non_fire_dataset = glob.glob(constant.NO_FIRE_RAW_DATASET_AUG)[:100]
+    fire_dataset = glob.glob(constant.FIRE_RAW_DATASET)
+    non_fire_dataset = glob.glob(constant.NO_FIRE_RAW_DATASET)
+    aug_non_fire_dataset = glob.glob(constant.NO_FIRE_RAW_DATASET_AUG)
 
     logging.info(f"Datasets has been read and added to lists: fire images -> {len(fire_dataset)}, no fire images -> {len(non_fire_dataset)},\
  augmented no fire images -> {len(aug_non_fire_dataset)}.")
@@ -45,6 +48,35 @@ def train_test_split():
     logging.info(f"train size -> {len(train_path_list)}, test size -> {len(test_path_list)}, validation size -> {len(valid_path_list)}")
 
     return train_path_list, valid_path_list, test_path_list, image_path_and_label_dict
+
+def save_the_best_model(model, optimizer, information_dict):
+    # Generate a unique file name for the model
+    MODEL_FILE = f"{datetime.now().strftime('%m_%d_%Y_%H_%M_%S')}"
+
+    # Define the path for the model
+    model_folder_path = os.path.join(os.getcwd(), "models", MODEL_FILE)
+
+    os.makedirs(model_folder_path, exist_ok=True)
+
+    model_file_name = os.path.join(model_folder_path, f"{datetime.now().strftime('%m_%d_%Y_%H_%M_%S')}.pt")
+
+    # Save the model state and optimizer state to the model file
+    torch.save({
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict()
+    }, model_file_name)
+
+    # Define the path for the JSON file
+    json_file_name = "model_info.json"
+    json_file_path = os.path.join(model_folder_path, json_file_name)
+
+    json_str = json.dumps(information_dict, indent=4, separators=(", ", ": "))
+    # Save information_dict to the JSON file
+    with open(json_file_path, 'w') as json_file:
+        json_file.write(json_str)
+
+def load_the_model(model_path):
+    ...
 
 def images_to_probs(net, images):
     '''

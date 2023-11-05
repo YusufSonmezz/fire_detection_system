@@ -8,7 +8,7 @@ from sklearn.metrics import r2_score, accuracy_score, confusion_matrix, classifi
 
 from src.components.model import VGGModel
 from config import constant
-from src.utils import train_test_split, plot_classes_preds
+from src.utils import train_test_split, plot_classes_preds, save_the_best_model
 from src.pipeline.preprocess_pipeline import PreprocessPipeline
 from src.logger import setup_logging, logging
 
@@ -30,6 +30,10 @@ class TrainPipeline:
         
         self.train_list, self.valid_list, self.test_list, self.label_dict = train_test_split()
 
+        self.best_model = None
+        self.best_val_accuracy = 0
+        self.best_model_info = {}
+
         ########
         self.prediction = []
         self.label = []
@@ -46,11 +50,19 @@ class TrainPipeline:
         
         for epoch in range(constant.EPOCH):
             train_loss, train_accuracy = self.train_one_epoch(epoch)
-            val_loss, val_accuracy = self.validate(epoch)
+            val_loss, val_accuracy, info_dict = self.validate(epoch)
+
+            if val_accuracy > self.best_val_accuracy:
+                logging.info(f"The best model is from {epoch + 1}. epoch. val_accuracy -> {val_accuracy}")
+                self.best_val_accuracy = val_accuracy
+                self.best_model = self.model
+                self.best_model_info = info_dict
             ####
             self.label = []
             self.prediction = []
             ####
+        
+        save_the_best_model(self.best_model, self.optimizer, self.best_model_info)
         
         self.writer.flush()
     
@@ -112,8 +124,10 @@ class TrainPipeline:
     def validate(self, epoch):
         logging.info(f"{epoch + 1} validation epoch has been started.")
         self.model.eval()
+
         val_loss = 0.0
         correct_predictions = 0
+        info_dict = {}
 
         with torch.no_grad():
             for i, valid_path in enumerate(self.valid_list):
@@ -147,6 +161,13 @@ class TrainPipeline:
         accuracy = correct_predictions / len(self.valid_list)
         self.scheduler.step()
 
+        info_dict['Loss Function'] = self.criterion.__class__.__name__
+        info_dict['Optimization'] = self.optimizer.__class__.__name__
+        info_dict['Loss'] = float(average_loss)
+        info_dict['Accuracy'] = float(accuracy) * 100
+        info_dict['Confusion matrix'] = confusion.tolist()
+        info_dict['Classification Report'] = classification_report_str
+
         logging.info(f"{epoch + 1} validation epoch results are :\n \
 Epoch loss -> {average_loss}\n \
 Accuracy -> {accuracy * 100:.2f}\n \
@@ -155,7 +176,7 @@ Classification Report -> \n{classification_report_str}")
 
         print(f"Epoch {epoch + 1} - Validation Loss: {average_loss:.4f}, Accuracy: {accuracy * 100:.2f}%")
 
-        return average_loss, accuracy
+        return average_loss, accuracy, info_dict
 
     
 
