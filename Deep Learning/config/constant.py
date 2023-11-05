@@ -18,7 +18,7 @@ shuffle = True
 
 # Train config
 EPOCH = 5
-LEARNING_RATE = 0.0001
+LEARNING_RATE = 0.00001
 
 valid_size = 0.15
 test_size = 0.15

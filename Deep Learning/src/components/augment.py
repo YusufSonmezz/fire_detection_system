@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 import albumentations as A
-import albumentations.pytorch
 import os
 import glob
 import tqdm

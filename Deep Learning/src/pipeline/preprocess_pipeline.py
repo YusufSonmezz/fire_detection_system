@@ -5,11 +5,12 @@ import numpy as np
 import torch
 
 from config import constant
+from src.logger import setup_logging, logging
 
 
 class PreprocessPipeline:
     def __init__(self):
-        ...
+        setup_logging(logging.INFO)
     
     def initate_preprocess(self, input_path_list):
         '''

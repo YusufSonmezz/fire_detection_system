@@ -10,6 +10,7 @@ from src.components.model import VGGModel
 from config import constant
 from src.utils import train_test_split, plot_classes_preds
 from src.pipeline.preprocess_pipeline import PreprocessPipeline
+from src.logger import setup_logging, logging
 
 class TrainPipeline:
     def __init__(self):
@@ -32,10 +33,17 @@ class TrainPipeline:
         ########
         self.prediction = []
         self.label = []
+        setup_logging(logging.INFO)
         ########
     
     def initiate_train(self):
-
+        
+        logging.info("Training has been started.")
+        logging.info(f"Epoch is -> {constant.EPOCH}, Image size -> {constant.IMAGE_SIZE}\
+ Batch size -> {constant.BATCH_SIZE}, Loss function -> {self.criterion}\
+ Optimization function -> {self.optimizer}, Learning rate -> {constant.LEARNING_RATE}\
+ Cuda -> {constant.cuda}")
+        
         for epoch in range(constant.EPOCH):
             train_loss, train_accuracy = self.train_one_epoch(epoch)
             val_loss, val_accuracy = self.validate(epoch)
@@ -47,6 +55,7 @@ class TrainPipeline:
         self.writer.flush()
     
     def train_one_epoch(self, epoch):
+        logging.info(f"{epoch + 1} training epoch has been started.")
         self.model.train()
         running_loss = 0.0
         correct_predictions = 0
@@ -92,6 +101,8 @@ class TrainPipeline:
         epoch_loss = running_loss / len(self.train_list)
         accuracy = correct_predictions / total_samples
 
+        logging.info(f"{epoch + 1} Epoch loss -> {epoch_loss}, Accuracy -> {accuracy * 100:.2f}%")
+
         self.writer.add_scalar("Loss/train", epoch_loss, epoch)
 
         print(f"Epoch {epoch + 1} - Training Loss: {epoch_loss:.4f}, Accuracy: {accuracy * 100:.2f}%")
@@ -99,6 +110,7 @@ class TrainPipeline:
         return epoch_loss, accuracy
     
     def validate(self, epoch):
+        logging.info(f"{epoch + 1} validation epoch has been started.")
         self.model.eval()
         val_loss = 0.0
         correct_predictions = 0
@@ -134,6 +146,12 @@ class TrainPipeline:
         average_loss = val_loss / len(self.valid_list)
         accuracy = correct_predictions / len(self.valid_list)
         self.scheduler.step()
+
+        logging.info(f"{epoch + 1} validation epoch results are :\n \
+Epoch loss -> {average_loss}\n \
+Accuracy -> {accuracy * 100:.2f}\n \
+Confusion matrix -> \n{confusion}\n \
+Classification Report -> \n{classification_report_str}")
 
         print(f"Epoch {epoch + 1} - Validation Loss: {average_loss:.4f}, Accuracy: {accuracy * 100:.2f}%")
 
