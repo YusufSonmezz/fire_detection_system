@@ -78,7 +78,8 @@ class ResNet(nn.Module):
     def __init__(self, classes, pretrained=True):
         super(ResNet, self).__init__()
 
-        self.resnet = models.resnet50(pretrained=pretrained)
+        if pretrained: self.resnet = models.resnet50(weights=models.resnet.ResNet50_Weights.IMAGENET1K_V1)
+        else: self.resnet = models.resnet50()
 
         num_ftrs = self.resnet.fc.in_features
         self.resnet.fc = nn.Linear(num_ftrs, classes)
