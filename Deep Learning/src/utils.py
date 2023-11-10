@@ -49,6 +49,19 @@ def train_test_split():
 
     return train_path_list, valid_path_list, test_path_list, image_path_and_label_dict
 
+def save_json(information_dict, json_file_path):
+    json_str = json.dumps(information_dict, indent=4, separators=(", ", ": "))
+
+    with open(json_file_path, 'w') as json_file:
+        json_file.write(json_str)
+
+def read_json(json_file_path):
+    
+    with open(json_file_path, 'r') as json_file:
+        data = json.load(json_file)
+    
+    return data
+
 def save_the_best_model(model, optimizer, information_dict):
     # Generate a unique file name for the model
     MODEL_FILE = f"{datetime.now().strftime('%m_%d_%Y_%H_%M_%S')}"
@@ -70,10 +83,7 @@ def save_the_best_model(model, optimizer, information_dict):
     json_file_name = "model_info.json"
     json_file_path = os.path.join(model_folder_path, json_file_name)
 
-    json_str = json.dumps(information_dict, indent=4, separators=(", ", ": "))
-    # Save information_dict to the JSON file
-    with open(json_file_path, 'w') as json_file:
-        json_file.write(json_str)
+    save_json(information_dict, json_file_path)
 
 def load_the_model(model_path):
     ...
