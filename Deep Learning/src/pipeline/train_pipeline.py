@@ -6,7 +6,7 @@ from torch.utils.tensorboard import SummaryWriter
 import tqdm
 from sklearn.metrics import r2_score, accuracy_score, confusion_matrix, classification_report
 
-from src.components.model import VGGModel
+from src.components.model import VGGModel, ResNet
 from config import constant
 from src.utils import train_test_split, plot_classes_preds, save_the_best_model
 from src.pipeline.preprocess_pipeline import PreprocessPipeline
@@ -15,7 +15,8 @@ from src.logger import setup_logging, logging
 class TrainPipeline:
     def __init__(self):
         self.classes = len(constant.CLASSES)
-        self.model = VGGModel(self.classes)
+        #self.model = VGGModel(self.classes)
+        self.model = ResNet(self.classes, pretrained=True)
         self.preprocessPipeline = PreprocessPipeline()
 
         self.criterion = nn.CrossEntropyLoss()
@@ -84,7 +85,6 @@ class TrainPipeline:
 
             outputs = self.model(batch_input)
             '''
-
             # Apply last layer outside of model
             outputs = nn.Sigmoid()(outputs)'''
 
@@ -161,6 +161,7 @@ class TrainPipeline:
         accuracy = correct_predictions / len(self.valid_list)
         self.scheduler.step()
 
+        info_dict['Model Name'] = self.model.__class__.__name__
         info_dict['Loss Function'] = self.criterion.__class__.__name__
         info_dict['Optimization'] = self.optimizer.__class__.__name__
         info_dict['Loss'] = float(average_loss)

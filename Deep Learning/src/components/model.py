@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 from torch.nn.modules.activation import ReLU
+import torch.nn.functional as F
+from torchvision import models
 
 from config.constant import IMAGE_SIZE
 
@@ -72,6 +74,22 @@ class VGGModel(nn.Module):
         
         return x
     
+class ResNet(nn.Module):
+    def __init__(self, classes, pretrained=True):
+        super(ResNet, self).__init__()
+
+        self.resnet = models.resnet50(pretrained=pretrained)
+
+        num_ftrs = self.resnet.fc.in_features
+        self.resnet.fc = nn.Linear(num_ftrs, classes)
+    
+    def forward(self, x):
+        x = self.resnet(x)
+
+        return x
+
+
+
 if __name__ == "__main__":
     dummy = torch.rand((1, 3, 224, 224))
     model = VGGModel(2)
