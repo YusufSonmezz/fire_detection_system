@@ -63,6 +63,10 @@ class TrainPipeline:
             self.prediction = []
             ####
         
+        test_path_label = {}
+        for test_path in self.test_list:
+            test_path_label[test_path] = self.label_dict[test_path]
+        self.best_model_info['test_path_list'] = test_path_label
         save_the_best_model(self.best_model, self.optimizer, self.best_model_info)
         
         self.writer.flush()
@@ -130,7 +134,7 @@ class TrainPipeline:
         info_dict = {}
 
         with torch.no_grad():
-            for i, valid_path in enumerate(self.valid_list):
+            for i, valid_path in tqdm.tqdm(enumerate(self.valid_list)):
                 batch_input = self.preprocessPipeline.initate_preprocess([valid_path])
                 batch_label = self.preprocessPipeline.one_hot_encoder([self.label_dict[valid_path]])
 
