@@ -5,8 +5,8 @@ cuda = True
 
 # data
 CLASSES = {
-    "fire": 1,
-    "non-fire": 0
+    "non-fire": 0,
+    "fire": 1
 }
 IMAGE_SIZE = (224, 224)
 BATCH_SIZE = 16
