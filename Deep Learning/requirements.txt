@@ -8,4 +8,5 @@ torchvision==0.16.0+cu118
 tqdm==4.66.1
 tensorboard
 albumentations
+seaborn
 -e .
