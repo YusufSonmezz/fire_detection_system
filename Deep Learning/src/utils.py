@@ -56,7 +56,7 @@ def save_json(information_dict, json_file_path):
         json_file.write(json_str)
 
 def read_json(json_file_path):
-    
+
     with open(json_file_path, 'r') as json_file:
         data = json.load(json_file)
     
@@ -71,22 +71,16 @@ def save_the_best_model(model, optimizer, information_dict):
 
     os.makedirs(model_folder_path, exist_ok=True)
 
-    model_file_name = os.path.join(model_folder_path, f"{datetime.now().strftime('%m_%d_%Y_%H_%M_%S')}.pt")
+    model_file_name = os.path.join(model_folder_path, f"{datetime.now().strftime('%m_%d_%Y_%H_%M_%S')}.pth")
 
     # Save the model state and optimizer state to the model file
-    torch.save({
-        'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict()
-    }, model_file_name)
+    torch.save(model, model_file_name)
 
     # Define the path for the JSON file
     json_file_name = "model_info.json"
     json_file_path = os.path.join(model_folder_path, json_file_name)
 
     save_json(information_dict, json_file_path)
-
-def load_the_model(model_path):
-    ...
 
 def images_to_probs(net, images):
     '''
@@ -98,21 +92,23 @@ def images_to_probs(net, images):
     _, preds_tensor = torch.max(output, 1)
     preds = np.squeeze(preds_tensor.cpu().numpy())
     
-    return preds, [F.softmax(el, dim=0)[i].item() for i, el in zip(preds, output)]
+    return preds, [F.softmax(el, dim=0)[i].item() for i, el in zip([preds.tolist()], output)]
 
-def plot_classes_preds(writer, net, images, labels):
+def plot_classes_preds(writer, net, images, labels, global_step):
     '''
     Logs images, predicted labels, and class probabilities for each image
     to TensorBoard using the SummaryWriter.
     '''
+
     classes = list(constant.CLASSES.keys())
     preds, probs = images_to_probs(net, images)
     
-    for idx, (image, label, pred, prob) in enumerate(zip(images, labels, preds, probs)):
-        fig, ax = plt.subplots(1, 1, figsize=(6, 4))
+    for idx, (image, label, pred, prob) in enumerate(zip(images, labels, [preds.tolist()], probs)):
+        _, label = torch.max(label, 0)
+        fig, ax = plt.subplots(1, 1, figsize=(8, 6))
         ax.axis('off')
-        ax.set_title(f'Predicted: {classes[pred]}\nProbability: {probs[pred] * 100:.2f}%\nTrue Label: {classes[label]}',
-                     color=("green" if pred == label.item() else "red"))
+        ax.set_title(f'Predicted: {classes[pred]}\nProbability: {prob * 100:.2f}%\nTrue Label: {classes[label.int()]}',
+                     color=("green" if pred == label.int() else "red"))
         image = image.cpu().detach().numpy()
         # Change tensor size to numpy size -> (C, H, W) to (H, W, C) and convert dtype to np.uint8 for plotting.
         image = image.transpose((1, 2, 0)).astype(np.uint8)
@@ -121,6 +117,8 @@ def plot_classes_preds(writer, net, images, labels):
         ax.imshow(image)
         
         # Log the image, its predicted label, and probabilities to TensorBoard
-        writer.add_figure(f'Predictions/Image_{idx}', fig, global_step=idx)
-        writer.add_text(f'Predictions/Class_{idx}', f'Predicted: {classes[pred]}, True: {classes[label]}', global_step=idx)
-        writer.add_text(f'Predictions/Probability_{idx}', f'Probability: {probs[pred] * 100:.2f}%', global_step=idx)
+        writer.add_figure(f'Predictions/Image_{idx}', fig, global_step= global_step + idx)
+        writer.add_text(f'Predictions/Class_{idx}', f'Predicted: {classes[pred]}, True: {classes[label.int()]}', global_step=idx)
+        writer.add_text(f'Predictions/Probability_{idx}', f'Probability: {prob * 100:.2f}%', global_step=idx)
+    
+    return fig
