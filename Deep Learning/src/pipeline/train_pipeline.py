@@ -67,7 +67,9 @@ class TrainPipeline:
         for test_path in self.test_list:
             test_path_label[test_path] = self.label_dict[test_path]
         self.best_model_info['test_path_list'] = test_path_label
-        save_the_best_model(self.best_model, self.optimizer, self.best_model_info)
+        model_file_name = save_the_best_model(self.best_model, self.optimizer, self.best_model_info)
+
+        return model_file_name
         
         self.writer.flush()
     
