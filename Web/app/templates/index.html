@@ -1,0 +1,39 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drone Control</title>
+</head>
+
+<body>
+    <div>
+        <h1>Drone Control Panel</h1>
+
+        <div id="weather-container">
+            <h2>Weather Data</h2>
+            <p id="temperature">Temperature: Loading...</p>
+            <p id="humidity">Humidity: Loading...</p>
+            <p id="rain">Rain: Loading...</p>
+            <p id="wind-speed">Wind Speed: Loading...</p>
+        </div>
+
+        <button onclick="getWeatherData()">Get Weather Data</button>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script>
+        function getWeatherData() {
+            $.get('/api/weather', function(data) {
+                $('#temperature').text('Temperature: ' + data.temperature + '°C');
+                $('#humidity').text('Humidity: ' + data.humidity + '%');
+                $('#rain').text('Rain: ' + (data.rain ? 'Yes' : 'No'));
+                $('#wind-speed').text('Wind Speed: ' + data.wind_speed + ' m/s');
+            });
+        }
+    </script>
+</body>
+
+</html>
