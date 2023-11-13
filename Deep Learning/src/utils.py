@@ -82,6 +82,8 @@ def save_the_best_model(model, optimizer, information_dict):
 
     save_json(information_dict, json_file_path)
 
+    return MODEL_FILE
+
 def images_to_probs(net, images):
     '''
     Generates predictions and corresponding probabilities from a trained
