@@ -3,18 +3,18 @@ import sys
 import numpy as np
 from dataclasses import dataclass
 
-from catboost import CatBoostRegressor
-from sklearn.svm import SVR
+from catboost import CatBoostClassifier
+from sklearn.svm import SVC
 from sklearn.ensemble import (
-    AdaBoostRegressor,
-    GradientBoostingRegressor,
+    AdaBoostClassifier,
+    GradientBoostingClassifier,
     RandomForestRegressor,
     RandomForestClassifier
 )
 from sklearn.linear_model import LinearRegression, LogisticRegressionCV
 from sklearn.metrics import r2_score, accuracy_score, confusion_matrix, classification_report
 from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
-from xgboost import XGBRegressor
+from xgboost import XGBClassifier
 
 from src.exception import CustomException
 from src.logger import logging, setup_logging
@@ -49,13 +49,13 @@ class ModelTrainer:
                 "Random Forest Classifier": RandomForestClassifier(),
                 "Decision Tree": DecisionTreeRegressor(),
                 "Decision Tree Classifier": DecisionTreeClassifier(),
-                "Gradient Boosting": GradientBoostingRegressor(),
-                "XGBRegressor": XGBRegressor(),
-                "Linear Regression": LinearRegression(),
-                "CatBoosting Regressor": CatBoostRegressor(verbose = False),
-                "AdaBoost Regressor": AdaBoostRegressor(),
-                "Logistic Regression": LogisticRegressionCV(),
-                "Support Vector Machine": SVR(),
+                "Gradient Boosting": GradientBoostingClassifier(),
+                "XGB Classifier": XGBClassifier(),
+                #"Linear Regression": LinearRegression(),
+                "CatBoosting Classifier": CatBoostClassifier(verbose = False),
+                "AdaBoost Classifier": AdaBoostClassifier(),
+                #"Logistic Regression": LogisticRegressionCV(),
+                "Support Vector Machine": SVC(),
             }
 
             params = {
@@ -88,16 +88,16 @@ class ModelTrainer:
                     'n_estimators': [8,16,32,64,128,256]
                 },
                 "Linear Regression":{},
-                "XGBRegressor":{
+                "XGB Classifier":{
                     'learning_rate':[.1,.01,.05,.001],
                     'n_estimators': [8,16,32,64,128,256]
                 },
-                "CatBoosting Regressor":{
+                "CatBoosting Classifier":{
                     'depth': [6,8,10],
                     'learning_rate': [0.01, 0.05, 0.1],
                     'iterations': [30, 50, 100]
                 },
-                "AdaBoost Regressor":{
+                "AdaBoost Classifier":{
                     'learning_rate':[.1,.01,0.5,.001],
                     # 'loss':['linear','square','exponential'],
                     'n_estimators': [8,16,32,64,128,256]
@@ -123,7 +123,7 @@ class ModelTrainer:
             best_model = models[best_model_name]
 
             if best_model_score < 0.6:
-                ...#raise CustomException("No best model found!!")
+                raise CustomException("No best model found!!")
             
             logging.info([f"{model} -> {model_report[model]}" for model in model_report.keys()])
 
@@ -134,9 +134,9 @@ class ModelTrainer:
 
             y_pred = best_model.predict(x_test)
 
-            accuracy = accuracy_score(y_test, [int(y > 0.5) for y in y_pred])
-            confusion = confusion_matrix(y_test, [int(y > 0.5) for y in y_pred])
-            classification_report_str = classification_report(y_test, [int(y > 0.5) for y in y_pred])
+            accuracy = accuracy_score(y_test, y_pred)
+            confusion = confusion_matrix(y_test, y_pred)
+            classification_report_str = classification_report(y_test, y_pred)
 
             print(f"Accuracy: {accuracy}")
             print("Confusion Matrix:")

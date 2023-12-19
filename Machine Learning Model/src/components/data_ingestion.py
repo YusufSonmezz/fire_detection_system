@@ -20,25 +20,29 @@ class DataIngestionConfig:
 class DataIngestion:
     def __init__(self):
         self.ingestion_config = DataIngestionConfig()
+        self.threshold = 15
     
     def initiate_data_ingestion(self):
         setup_logging(logging.INFO)
         logging.info("Data Ingestion has been started.")
 
         try:
-            df = pd.read_csv("notebook/data/forestfire_raw.csv")
+            df = pd.read_csv("notebook/data/nasa_dataset/output_area_2.csv")
             logging.info("Read the dataset as DataFrame.")
+
+            # Add threshold to detect if there is a fire or not.
+            df["burned_area"] = (df["burned_area"] > 15).astype(int)    
 
             os.makedirs(os.path.dirname(self.ingestion_config.train_data_path), exist_ok=True)
             os.makedirs(os.path.dirname(self.ingestion_config.test_data_path), exist_ok=True)
 
-            removed_columns = ['X', 'Y', 'day', 'FFMC', 'DMC', 'DC', 'ISI']
+            removed_columns = ["year", "frp", "perc_frp"]
             df = df.drop(columns=removed_columns)
             logging.info(f"Irrelivant columns are dropped -> {removed_columns}.")
 
             df.to_csv(self.ingestion_config.raw_data_path, index = False, header=True)
 
-            train_set, test_set = train_test_split(df, test_size=0.2, random_state=42, shuffle=True)
+            train_set, test_set = train_test_split(df, test_size=0.2, random_state=42, shuffle=True, stratify=df["burned_area"])
 
             train_set.to_csv(self.ingestion_config.train_data_path, index = False, header = True)
             test_set.to_csv(self.ingestion_config.test_data_path, index = False, header = True)

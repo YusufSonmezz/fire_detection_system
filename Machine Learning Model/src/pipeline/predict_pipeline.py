@@ -1,6 +1,8 @@
 import sys
 import pandas as pd
 
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
 from src.exception import CustomException
 from src.utils import load_object
 
@@ -21,8 +23,8 @@ class PredictPipeline:
 
             preprocessed_features = preprocessor.transform(features)
             
-            raw_result = model.predict(preprocessed_features)
-            classified_result = int(raw_result > 0.5)
+            classified_result = model.predict(preprocessed_features)
+            
 
             return classified_result
 
@@ -31,17 +33,28 @@ class PredictPipeline:
 
 class CustomData:
     def __init__(self,
-                 month: str,
+                 month: int,
                  temp: float,
                  RH: float,
                  wind: float,
-                 rain: float):
+                 day_night: int):
         
         self.month = month
         self.temp = temp
         self.RH = RH
         self.wind = wind
-        self.rain = rain
+        self.day_night = day_night
+
+        base_temperature = 10.0
+
+        # Calculate the temperature difference
+        temp_diff = self.temp - base_temperature
+
+        # Calculate Cooling Degree Days (CDD)
+        self.daily_cdd_customer = max(temp_diff, 0)
+
+        # Calculate Heating Degree Days (HDD)
+        self.daily_hdd_customer = max(-temp_diff, 0)
     
     def get_data_as_data_frame(self):
 
@@ -51,10 +64,27 @@ class CustomData:
                 "temp" : [self.temp],
                 "RH"   : [self.RH],
                 "wind" : [self.wind],
-                "rain" : [self.rain]
+                "day_night" : [self.day_night],
+                "daily_cdd": [self.daily_cdd_customer],
+                "daily_hdd": [self.daily_hdd_customer]
             }
 
             return pd.DataFrame(custom_data_input_dict)
 
         except Exception as e:
             raise CustomException(e, sys)
+    
+if __name__ == "__main__":
+    predict = PredictPipeline()
+    df = pd.read_csv("notebook/data/synthetic/synthetic.csv")
+
+    x = df.drop(columns=["burned_area"])
+    y = df["burned_area"]
+    
+    y_pred = predict.predict(x)
+
+    print("Accuracy score is..: ", accuracy_score(y, y_pred))
+    print("Confusion Matrix\n", confusion_matrix(y, y_pred))
+    print("Classification Report\n", classification_report(y, y_pred))
+
+

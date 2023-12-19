@@ -23,7 +23,7 @@ class DataTransformation:
         self.transformation_config = DataTransformationConfig()
         setup_logging(logging.INFO)
 
-        self.target_column = 'area'
+        self.target_column = 'burned_area'
         self.numerical_columns = []
         self.categorical_columns = []
     
@@ -75,6 +75,12 @@ class DataTransformation:
             self.numerical_columns = [column for column in train_df.columns if train_df[column].dtype != 'O']
             self.categorical_columns = [column for column in train_df.columns if train_df[column].dtype == 'O']
 
+            # These features normally numeric but They should be one hot encoded. So I add them to categorical columns.
+            self.categorical_columns.append("month")
+            self.categorical_columns.append("day_night")
+            self.numerical_columns.remove("month")
+            self.numerical_columns.remove("day_night")
+
             # Remove target column from preprocess. Because target column is something we want to predict.
             # We don't want any information about target column inside other columns.
             if self.target_column in self.numerical_columns: self.numerical_columns.remove(self.target_column)
@@ -88,10 +94,6 @@ class DataTransformation:
 
             input_feature_test_df = test_df.drop(columns=[self.target_column], axis = 1)
             target_feature_test_df = test_df[self.target_column]
-
-            # Target feature may have NaN values. Here it is fixed.
-            target_feature_train_df.fillna(0, inplace=True)
-            target_feature_test_df.fillna(0, inplace=True)
 
             logging.info("Applying preprocess object on training dataframe and testing dataframe")
 
