@@ -14,25 +14,73 @@
 
         <div id="weather-container">
             <h2>Weather Data</h2>
+            <p id="month">Month: Loading...</p>
             <p id="temperature">Temperature: Loading...</p>
-            <p id="humidity">Humidity: Loading...</p>
-            <p id="rain">Rain: Loading...</p>
-            <p id="wind-speed">Wind Speed: Loading...</p>
+            <p id="RH">Humidity: Loading...</p>
+            <p id="day_night">Rain: Loading...</p>
+            <p id="wind_speed">Wind Speed: Loading...</p>
         </div>
 
         <button onclick="getWeatherData()">Get Weather Data</button>
+        <button onclick="predictFire()">Predict Fire</button>
+
+        <p id="prediction_result"></p>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script>
+        var Months = {
+            1: 'January',
+            2: 'February',
+            3: 'March',
+            4: 'April',
+            5: 'May',
+            6: 'June',
+            7: 'July',
+            8: 'August',
+            9: 'September',
+            10: 'October',
+            11: 'November',
+            12: 'December'
+        };
+
+        var weatherData;
+
         function getWeatherData() {
             $.get('/api/weather', function(data) {
+                console.log(data)
+        
+                $('#month').text('Month: ' + Months[data.month]);
                 $('#temperature').text('Temperature: ' + data.temperature + '°C');
-                $('#humidity').text('Humidity: ' + data.humidity + '%');
-                $('#rain').text('Rain: ' + (data.rain ? 'Yes' : 'No'));
-                $('#wind-speed').text('Wind Speed: ' + data.wind_speed + ' m/s');
-            });
+                $('#RH').text('Humidity: ' + data.RH + '%');
+                $('#day_night').text('Day: ' + (data.day_night));
+                $('#wind_speed').text('Wind Speed: ' + data.wind_speed + ' m/s');
+
+                weatherData = data;
+            });        
         }
+
+        var fire = {
+            1: "There is fire",
+            0: "There is NO fire"
+        }
+        
+        function predictFire() {
+            if (weatherData) {
+                $.ajax({
+                    type: 'POST',
+                    url: '/predict',
+                    data: JSON.stringify(weatherData),
+                    contentType: 'application/json',
+                    success: function (prediction) {
+                        $('#prediction_result').text(fire[prediction]);
+                    }
+                });
+            } else {
+                console.error('Weather data not available. Call getWeatherData first.');
+            }
+        }
+        
     </script>
 </body>
 
