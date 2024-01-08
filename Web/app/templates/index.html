@@ -1,35 +1,76 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
+    <meta http-equiv="refresh" content="3000">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Drone Control</title>
-</head>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
 
-<body>
-    <div>
-        <h1>Drone Control Panel</h1>
+        #container {
+            max-width: 800px;
+            margin: 50px auto;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
 
-        <div id="weather-container">
-            <h2>Weather Data</h2>
-            <p id="month">Month: Loading...</p>
-            <p id="temperature">Temperature: Loading...</p>
-            <p id="RH">Humidity: Loading...</p>
-            <p id="day_night">Rain: Loading...</p>
-            <p id="wind_speed">Wind Speed: Loading...</p>
-        </div>
+        h1 {
+            color: #333;
+        }
 
-        <button onclick="getWeatherData()">Get Weather Data</button>
-        <button onclick="predictFire()">Predict Fire</button>
+        h2 {
+            color: #555;
+        }
 
-        <p id="prediction_result"></p>
-    </div>
+        #weather-info {
+            text-align: left;
+            margin: 20px 0;
+        }
 
+        #weather-info span {
+            display: inline-block;
+            font-weight: bold;
+            margin-left: 10px; /* Changed from margin-right to margin-left */
+            margin-bottom: 10px;
+        }
+
+        #fire-risk-container {
+            padding: 10px;
+            border: 2px solid transparent;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        #fire-risk-container.red {
+            border-color: red;
+            background-color: #FFD2D2; /* Light red background */
+        }
+
+        #fire-risk-container.green {
+            border-color: green;
+            background-color: #D2FFD2; /* Light green background */
+        }
+
+        #prediction_result {
+            margin: 0;
+            font-weight: bold;
+        }
+    </style>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <script>
-        var Months = {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf-8">
+        var months = {
             1: 'January',
             2: 'February',
             3: 'March',
@@ -44,44 +85,83 @@
             12: 'December'
         };
 
-        var weatherData;
+        var days = {
+            0: "Night",
+            1: "Day"
+        };
+        var socket = io.connect('http://localhost:5000');
 
-        function getWeatherData() {
-            $.get('/api/weather', function(data) {
-                console.log(data)
-        
-                $('#month').text('Month: ' + Months[data.month]);
-                $('#temperature').text('Temperature: ' + data.temperature + '°C');
-                $('#RH').text('Humidity: ' + data.RH + '%');
-                $('#day_night').text('Day: ' + (data.day_night));
-                $('#wind_speed').text('Wind Speed: ' + data.wind_speed + ' m/s');
+        socket.on('connect', function() {
+            console.log('Connected to Flask-SocketIO');
+        });
 
-                weatherData = data;
-            });        
-        }
-
-        var fire = {
-            1: "There is fire",
-            0: "There is NO fire"
-        }
-        
-        function predictFire() {
-            if (weatherData) {
-                $.ajax({
-                    type: 'POST',
-                    url: '/predict',
-                    data: JSON.stringify(weatherData),
-                    contentType: 'application/json',
-                    success: function (prediction) {
-                        $('#prediction_result').text(fire[prediction]);
-                    }
-                });
+        socket.on('result', function (data) {            
+            // Update the UI based on the prediction result
+            if (data.result === 1) {
+                $('#prediction_result').text('There is a fire probability. Drone is preparing for taking off.');
+                $('#fire-risk-container').addClass('red');
             } else {
-                console.error('Weather data not available. Call getWeatherData first.');
+                $('#prediction_result').text('There is no risk for fire.');
+                $('#fire-risk-container').addClass('green');
             }
-        }
-        
+        });
+
+        socket.on('weather-info', function(data) {
+            var data = data.data
+            console.log(data);
+
+            // Format the temperature, humidity, and wind speed
+            var formattedTemperature = (data.temperature).toFixed(2);
+            var formattedHumidity = (data.RH * 100).toFixed(2);
+            var formattedWindSpeed = (data.wind_speed).toFixed(2);
+
+            // Update the weather information in the <p> element
+            $('#weather-info').html(
+                `<span>Month:</span> ${months[data.month]} ` +
+                `<span>Temperature:</span> ${formattedTemperature}°C ` +
+                `<span>Humidity:</span> ${formattedHumidity}% ` +
+                `<span>Day:</span> ${days[data.day_night]} ` +
+                `<span>Wind Speed:</span> ${formattedWindSpeed} m/s`
+            );
+        });
+
+
+        socket.on('update_message', function(message){
+            var message = message.message
+            $('#update-container').append(message + '<br>');
+        });
+
+        socket.on('output', function (data) {
+            console.log(data)
+            var formattedProb = (data.prob * 100).toFixed(2)
+            Swal.fire({
+                title: 'Fire Detected!',
+                html: `Probability: ${formattedProb}%<br>Location: ${data.lat}, ${data.lon}`,
+                imageUrl: `${data.photo_path}`,
+                imageAlt: 'Fire Image'
+            });
+    });
     </script>
+</head>
+
+<body>
+    <div id="container">
+        <h1>Drone Control Panel</h1>
+
+        <div id="weather-container">
+            <h2>Weather Data</h2>
+
+            <p id="weather-info"></p>
+        </div>
+
+        <!-- Display area for fire risk information -->
+        <div id="fire-risk-container">
+            <p id="prediction_result"></p>
+        </div>
+        <div id="update-container"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 </body>
 
 </html>

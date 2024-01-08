@@ -1,5 +1,6 @@
 import os
 import cv2
+import matplotlib.pyplot as plt
 from dataclasses import dataclass
 import tqdm
 
@@ -43,10 +44,36 @@ class Video2Frame:
                     cv2.imwrite(os.path.join(self.video_config.raw_frame_path, frame_filename), frame)
 
         video.release()
+    
+    def seperate_frames_from_video(self, frame_per: int, video_path: str):
+        '''
+        Read video and extract the frames inside the video.
+        '''
+
+        video = cv2.VideoCapture(video_path)
+
+        fps = int(video.get(cv2.CAP_PROP_FPS))
+
+        frame_count = 0
+
+        while True:
+
+            ret, frame = video.read()
+
+            if not ret: 
+                print("Frame could NOT be read succesfully.")
+                break
+
+            frame_count += 1
+            if frame_count % int(fps / frame_per) == 0:
+                plt.imshow(cv2.resize(frame, (600, 500)))
+                plt.show()
+        
+        video.release()
 
         
 
 
 if __name__ == "__main__":
     video_preparation = Video2Frame()
-    video_preparation.seperate_frames_from_videos()
+    video_preparation.seperate_frames_from_video(1, "data/videos/fire_nofire.mp4")

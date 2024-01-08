@@ -6,6 +6,12 @@ torchvision==0.16.0
 tqdm==4.66.1
 pandas==2.1.1
 scikit-learn
-sdv
 ctgan
+dronekit
+dill
+pexpect
+empy
+future
+pymavlink
+MAVProxy
 -e .

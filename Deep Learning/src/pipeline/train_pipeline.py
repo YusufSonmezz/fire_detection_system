@@ -80,6 +80,8 @@ class TrainPipeline:
         correct_predictions = 0
         total_samples = 0
 
+        print("self.train_list is ..: ", self.train_list)
+        
         steps_per_epoch = len(self.train_list)//constant.BATCH_SIZE
 
         for ind in tqdm.tqdm(range(steps_per_epoch)):

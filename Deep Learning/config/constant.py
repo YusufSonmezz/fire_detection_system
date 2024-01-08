@@ -1,7 +1,7 @@
 import os
 
 # cuda: boolean
-cuda = True
+cuda = False
 
 # data
 CLASSES = {
